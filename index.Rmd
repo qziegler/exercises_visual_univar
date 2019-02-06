@@ -1,0 +1,130 @@
+<br> 
+<center><img src="http://i.imgur.com/sSaOozN.png" width="500"></center>
+
+## Visual Analytics Exercise 1
+
+### Quinn Ziegler
+
+_____
+<a id='part1'></a>
+
+# Part 2: Visualizing Tabular data
+### Univariate Case
+
+_____
+
+Contents:
+
+1. [Intro.](#part1)
+
+2. [Data Types.](#part2) 
+
+3. [Data Processes.](#part3)
+
+    3.1 [Classification.](#part31)
+    * [Nominal Data.](#part311)
+    * [Ordinal Data.](#part312)
+    
+    3.2 [Counting.](#part32)
+    
+    3.3 [Measurement.](#part33) 
+    
+
+_____
+
+Most data are commonly organized in tabular format, that is, tables. When data is in tabular format, cases are organized in rows, while variables (information about the cases) are organized in columns. Almost every data you have used in a spreadsheet follows that structure. 
+
+For example, when you visit the [website](https://nces.ed.gov/ccd/) of the Common Core of Data from the US Department of Education, you can get a data set with detailed information on public schools at the state of Washington. Let me get a data table I have based on that:
+
+
+
+```{r getData, eval=TRUE}
+link='https://github.com/EvansDataScience/VisualAnalytics_2_tabularData/raw/master/data/eduwa.rda'
+
+#getting the data TABLE from the file in the cloud:
+load(file=url(link))
+```
+
+When you are in RStudio, you can view the data table by clicking on its name at the _Environment_ .
+
+It also good to know _how much_ info you have:
+```{r dataDimension, eval=TRUE}
+#number of rows and columns
+dim(eduwa) #nrow(eduwa) ncol(eduwa)
+
+```
+
+This is the list of the 24 columns:
+
+```{r column_Names, eval=TRUE}
+names(eduwa)
+```
+
+
+When dealing with tabular data, you can suspect that you can produce a visualization for each column, and then for a couple of them simultaneously, and then for three or more. 
+
+In this material, we will pay attention to the _univariate_ case; which is common for searching problems or veryfing outcomes; not for giving explanations. Then, when dealing with univariate data, you need to be aware of two things: _what question you are trying to answer_; and _how to treat a particular variable_ to build the plot that will answer that question.
+
+[Go to table of contents.](#part1)
+
+<a id='part2'></a>
+
+## Data Types
+
+I can not anticipate all the questions you can try to answer via plots; but I can tell you that you are always limited by the **nature** of the variables you have at hand. Generally speaking, you have either _categorical_ or _numerical_ data in each column, and whatever question you have, you first need to know how that variable you are planing to use has been encoded, so you can plan the treatment. In R, we can know that like this:
+
+```{r dataSTR, eval=TRUE}
+# this 'width = 70,strict.width='cut' means
+# you do not want to see more than 70 characters per row.
+
+str(eduwa,width = 70,strict.width='cut')
+```
+
+The ones that say **num** are obviously numbers (numbers in R are *numeric* when decimal values are detected, and *integer* if they are not). The ones that say **chr** are strings, which are _candidates_ to be  **key** columns, which are not variables themselves, but identifiers of the cases. In this case, the first four are identifiers, as well as the the 7th, 10th and 15th columns (*school names*, _address_ and _phone_, respectively). Those variables are not to be analyzed statistically, but may be used for annotating (7th and 15th column) or for geocoding (10th column). Notice that for these data, _State_ is not to be analyzed as it is a constant (all rows are from WA); but it would be if the data were from the whole USA. Then, you see several variables identified as _factor_ or _ordered factor_, which are categorical variables: they can be analyzed statistically but not in the same way that numbers.
+
+[Go to table of contents.](#part1)
+
+<a id='part3'></a>
+
+## Data Processes
+
+Data is obtained via different processes. When you observe reality, you can _classsify_, _count_ or _measure_. Each of these decisions produces data with some basic characteristics; which are represented via categories or numerical values.  
+
+
+<a id='part31'></a>
+
+### Classification
+
+Categorical data are the output of the classification process. The classification can propose an incremental or non-incremental differentiation. The former are named ordinal data and the latter nominal data. A nominal classification related to education can be type of school funding: public or private; while an ordinal one can be: elementary, middle, high, college and graduate school level.
+
+<a id='part311'></a>
+
+#### <span style="color:blue"> 1. Visualization for nominal scales</span>
+
+
+Let's see some raw values in the variable _**LocaleType**_:
+
+```{r head, eval=TRUE}
+head(eduwa$LocaleType,50) #first fifty values
+```
+
+You can not get a clear idea of what a data table has, so a simple **frequency table** is the first tool to see what these nominal data are telling us:
+
+```{r freqTab_abs, eval=TRUE}
+# absolute values
+table(eduwa$LocaleType,exclude = 'nothing')
+```
+
+```{r freqTab_rel, eval=TRUE}
+# relative values
+absoluteT=table(eduwa$LocaleType,exclude = 'nothing')
+prop.table(absoluteT)
+```
+
+This table tells us the location of the public schools. What is the right visual for this? Sometimes the answer seems obvious, as tradition or habits give so much weight to decisions. Let's use the very well known **pie chart**:
+
+```{r pieBasic, eval=TRUE}
+# the pie plots the table:
+ToPlot=prop.table(absoluteT)
+pie(ToPlot)
+```
