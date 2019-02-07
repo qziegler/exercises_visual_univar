@@ -1,40 +1,21 @@
 <br> 
 <center><img src="http://i.imgur.com/sSaOozN.png" width="500"></center>
 
-## Visual Analytics Exercise 1
-
-### Quinn Ziegler
-
-_____
-<a id='part1'></a>
-
-# Part 2: Visualizing Tabular data
+## Visual Analytics Exercises
 ### Univariate Case
 
-_____
+### Produced by Quinn Ziegler
 
-Contents:
 
-1. [Intro.](#part1)
 
-2. [Data Types.](#part2) 
+______
 
-3. [Data Processes.](#part3)
 
-    3.1 [Classification.](#part31)
-    * [Nominal Data.](#part311)
-    * [Ordinal Data.](#part312)
-    
-    3.2 [Counting.](#part32)
-    
-    3.3 [Measurement.](#part33) 
-    
 
-_____
+```{r ggplot_call, warning=FALSE}
+library(ggplot2)
+```
 
-Most data are commonly organized in tabular format, that is, tables. When data is in tabular format, cases are organized in rows, while variables (information about the cases) are organized in columns. Almost every data you have used in a spreadsheet follows that structure. 
-
-For example, when you visit the [website](https://nces.ed.gov/ccd/) of the Common Core of Data from the US Department of Education, you can get a data set with detailed information on public schools at the state of Washington. Let me get a data table I have based on that:
 
 
 
@@ -45,86 +26,339 @@ link='https://github.com/EvansDataScience/VisualAnalytics_2_tabularData/raw/mast
 load(file=url(link))
 ```
 
-When you are in RStudio, you can view the data table by clicking on its name at the _Environment_ .
-
-It also good to know _how much_ info you have:
-```{r dataDimension, eval=TRUE}
-#number of rows and columns
-dim(eduwa) #nrow(eduwa) ncol(eduwa)
-
-```
-
-This is the list of the 24 columns:
-
-```{r column_Names, eval=TRUE}
-names(eduwa)
-```
-
-
-When dealing with tabular data, you can suspect that you can produce a visualization for each column, and then for a couple of them simultaneously, and then for three or more. 
-
-In this material, we will pay attention to the _univariate_ case; which is common for searching problems or veryfing outcomes; not for giving explanations. Then, when dealing with univariate data, you need to be aware of two things: _what question you are trying to answer_; and _how to treat a particular variable_ to build the plot that will answer that question.
-
-[Go to table of contents.](#part1)
-
-<a id='part2'></a>
-
-## Data Types
-
-I can not anticipate all the questions you can try to answer via plots; but I can tell you that you are always limited by the **nature** of the variables you have at hand. Generally speaking, you have either _categorical_ or _numerical_ data in each column, and whatever question you have, you first need to know how that variable you are planing to use has been encoded, so you can plan the treatment. In R, we can know that like this:
-
-```{r dataSTR, eval=TRUE}
-# this 'width = 70,strict.width='cut' means
-# you do not want to see more than 70 characters per row.
-
-str(eduwa,width = 70,strict.width='cut')
-```
-
-The ones that say **num** are obviously numbers (numbers in R are *numeric* when decimal values are detected, and *integer* if they are not). The ones that say **chr** are strings, which are _candidates_ to be  **key** columns, which are not variables themselves, but identifiers of the cases. In this case, the first four are identifiers, as well as the the 7th, 10th and 15th columns (*school names*, _address_ and _phone_, respectively). Those variables are not to be analyzed statistically, but may be used for annotating (7th and 15th column) or for geocoding (10th column). Notice that for these data, _State_ is not to be analyzed as it is a constant (all rows are from WA); but it would be if the data were from the whole USA. Then, you see several variables identified as _factor_ or _ordered factor_, which are categorical variables: they can be analyzed statistically but not in the same way that numbers.
-
-[Go to table of contents.](#part1)
-
-<a id='part3'></a>
-
-## Data Processes
-
-Data is obtained via different processes. When you observe reality, you can _classsify_, _count_ or _measure_. Each of these decisions produces data with some basic characteristics; which are represented via categories or numerical values.  
-
-
-<a id='part31'></a>
-
-### Classification
-
-Categorical data are the output of the classification process. The classification can propose an incremental or non-incremental differentiation. The former are named ordinal data and the latter nominal data. A nominal classification related to education can be type of school funding: public or private; while an ordinal one can be: elementary, middle, high, college and graduate school level.
-
-<a id='part311'></a>
-
-#### <span style="color:blue"> 1. Visualization for nominal scales</span>
-
-
-Let's see some raw values in the variable _**LocaleType**_:
-
-```{r head, eval=TRUE}
-head(eduwa$LocaleType,50) #first fifty values
-```
-
-You can not get a clear idea of what a data table has, so a simple **frequency table** is the first tool to see what these nominal data are telling us:
-
-```{r freqTab_abs, eval=TRUE}
-# absolute values
-table(eduwa$LocaleType,exclude = 'nothing')
-```
-
+_____
+## Exercise 1
+<span style="color:red"> Exercise:<br>Use ggplot to show a bar plot ordered by share size.</span>
 ```{r freqTab_rel, eval=TRUE}
 # relative values
 absoluteT=table(eduwa$LocaleType,exclude = 'nothing')
-prop.table(absoluteT)
-```
-
-This table tells us the location of the public schools. What is the right visual for this? Sometimes the answer seems obvious, as tradition or habits give so much weight to decisions. Let's use the very well known **pie chart**:
-
-```{r pieBasic, eval=TRUE}
-# the pie plots the table:
 ToPlot=prop.table(absoluteT)
-pie(ToPlot)
+names(ToPlot)[5]='Unknown'
 ```
+
+```{r ggplot1, eval=TRUE}
+tableFreq=as.data.frame(ToPlot)
+names(tableFreq)=c("locale","pct")
+tableFreq$pct <- tableFreq$pct*100 
+```
+
+```{r ggplot_base, eval=TRUE}
+tableFreq$locale <- factor(tableFreq$locale, levels = tableFreq$locale[order(-tableFreq$pct)])
+base= ggplot(data = tableFreq, 
+             aes(x = locale,
+                 y = pct)) 
+```
+
+```{r bar_gg, eval=TRUE}
+plot1 = base + geom_bar(fill ="gray",
+                        stat = "identity") # y is just what it is!
+```
+
+```{r title_gg, eval=TRUE}
+titleText2 = "Are all locations getting a fair share of public schools in WA?"
+sourceText = "Source: US Department of Education"
+plot2 = plot1 + labs(title=titleText2,
+                     x =NULL, 
+                     y = NULL,
+                     caption = sourceText)
+```
+
+```{r refl_gg, eval=TRUE}
+plot3 = plot2 + geom_hline(yintercept = 25, #where
+                           linetype="dashed", 
+                           size=1.5, #thickness
+                           alpha=0.5) #transparency
+```
+
+```{r units_gg, eval=TRUE}
+library(scales)
+
+plot4 = plot3 + scale_y_continuous(breaks=c(0,10,25,40,50),
+                                 limits = c(0, 50), # expand = c(0, 0),
+                                 labels=scales::unit_format(suffix = '%')) 
+```
+
+```{r title2_gg, eval=TRUE}
+plot5 = plot4 + theme(panel.background = element_rect(fill = "white",
+                                                    colour = "grey50"),
+                    plot.caption = element_text(hjust = 0), # default was 1
+                    plot.title = element_text(hjust = 0.5))
+```
+
+```{r annot_gg, eval=TRUE}
+plot6 = plot5 + geom_text(aes(y = pct ,
+                            label = paste0(round(pct,2), '%')),
+                        vjust=1, # if flipping 'hjust'
+                        hjust=-0.25,
+                        size = 3)
+
+plot6 + coord_flip()
+```
+
+
+
+
+_____
+## Exercise 2
+<span style="color:red"> Exercise:<br>Complete adding the elements missing in the last plot. </span>
+```{r lolli_ord_gg, eval=TRUE}
+tableFreqO=tableFreq[order(tableFreq$pct),]
+tableFreqO$gap=tableFreqO$pct-25
+```
+
+```{r lolli_annot_gg, eval=TRUE}
+# a new column for color
+tableFreqO$PositiveGap=ifelse(tableFreqO$gap>0,T,F)
+
+base = ggplot(tableFreqO, aes(locale,gap,color=PositiveGap,
+                              label = round(gap,3)))
+
+lolliplot1 = base + geom_segment(aes(y = 0, 
+                                   x = locale, 
+                                   yend = gap, 
+                                   xend = locale), color = "grey50") 
+
+lolliplot2 = lolliplot1 + geom_point() 
+
+lolliplot3 = lolliplot2 + scale_x_discrete(limits=tableFreqO$locale) 
+
+lolliplot4 = lolliplot3 + geom_text(nudge_x=0.3,show.legend = FALSE) 
+```
+
+```{r, eval=TRUE}
+lolliplot5 = lolliplot4 + labs(title = "Which locales account for >25% of public schools in WA state?",
+                               x = "Locale",
+                               y = "Gap (Locale Share - 25%)",
+                               caption = "Source: US Department of Education")
+
+lolliplot6 = lolliplot5 + theme(plot.caption = element_text(hjust = 0),
+                                plot.title = element_text(face = "bold", size = 11),
+                                axis.title.x = element_text(vjust = -2, size = 10),
+                                axis.title.y = element_text(size = 10, vjust = 2),
+                                panel.background = element_rect(fill = "white", color = "grey50"))
+
+lolliplot7 = lolliplot6 + scale_y_continuous(breaks = c(-20,-10,0,10), limits = c(-25,10)) +
+                          geom_hline(yintercept = 0, color = "grey80")
+                
+
+lolliplot7
+```
+
+
+
+
+_____
+## Exercise 3
+<span style="color:red"> Exercise:<br> Make sure our box plot follows the same design approach and include all the elements as in the bar plot for nominal data.
+```{r boxplot_gg, eval=TRUE}
+box1 = ggplot(eduwa, aes(y=as.numeric(High.Grade))) 
+box1 = box1 + geom_boxplot() + coord_flip()
+```
+
+```{r boxplot_axis_labels, eval=TRUE}
+ordLabels= levels(eduwa$High.Grade)
+
+box2 = box1 + scale_y_continuous(labels=ordLabels,breaks=1:15)
+```
+
+```{r}
+box3 = box2 + labs(title = "50% of schools in Washington state offer at most 8th grade", 
+                   y = "Highest Grade Offered",
+                   caption = "Source: US Department of Education") +
+            theme(panel.background = element_rect(fill = "white", colour = "grey50")) +
+            theme(axis.text.y = element_blank()) +
+            theme(axis.ticks.y = element_blank())
+
+box4 = box3 + theme(plot.title = element_text(size = 12, face = "bold"),
+                    axis.text.x = element_text(size = 8),
+                    axis.title.x = element_text(size = 10, vjust = -2),
+                    plot.caption = element_text(hjust = 0, vjust = -1)) 
+
+box4
+```
+
+
+
+
+_____
+## Exercise 4
+<span style="color:red"> Exercise:<br> Make a histogram for the variable  FREE LUNCH, and make sure it has all the right elements, and get rid of unnecessary elements.
+```{r, eval=TRUE}
+eduwaFL <- eduwa[complete.cases(eduwa$Free.Lunch),]
+```
+
+```{r, eval=TRUE}
+baseFL = ggplot(eduwaFL, aes(x = Free.Lunch))
+histFL = baseFL + geom_histogram(binwidth = 50, boundary = 0, fill = "white", color = "grey50")
+histFL = histFL + stat_bin(binwidth = 50, aes(label=..count..), 
+                  geom = "text",boundary = 0,vjust=-1, size = 2)
+```
+
+```{r, eval=TRUE}
+titleFL2 = "Very few schools in Washington state have more than 500 students \nreceiving free lunch"
+
+histFL2 = histFL + labs(title = titleFL2, 
+                        x = "Students Receiving Free Lunch",
+                        y = "Number of Schools",
+                        caption = "Source: US Department of Education")
+
+histFL3 = histFL2 + theme(panel.background = element_rect(fill = "white", colour = "grey50"),
+                          plot.title = element_text(size = 12, face = "bold"),
+                          axis.title = element_text(size = 10),
+                          axis.text = element_text(size = 8),
+                          plot.caption = element_text(hjust = 0),
+                          axis.title.x = element_text(vjust = -1),
+                          axis.title.y = element_text(vjust = 2))
+
+histFL4 = histFL3 + scale_x_continuous(breaks = c(0,250,500,750,1000,1250,1500,1750), limits = c(0,2000)) +
+                    scale_y_continuous(breaks = c(0,100,200,300,400,500,600), limits = c(0,600))
+
+histFL5 = histFL4 + geom_vline(xintercept = 500, color="blue", linetype = "dashed")
+histFL5
+```
+
+
+
+
+_____
+## Exercise 5
+<span style="color:red"> Exercise:<br> Do some research and make a histogram and a density plot using ggplot for the variable we just used above.
+```{r removeMissing2, eval=TRUE}
+eduwa4=eduwa[complete.cases(eduwa$Student.Teacher.Ratio),]
+```
+
+```{r histMeans, eval=TRUE}
+meanValues=tapply(eduwa4$Student.Teacher.Ratio, 
+                  eduwa4$County, 
+                  mean)
+```
+
+```{r, eval=TRUE}
+stratiodf <- as.data.frame(meanValues)
+stratiodf$county <- rownames(stratiodf)
+rownames(stratiodf) <- NULL
+```
+
+```{r}
+baseST = ggplot(stratiodf, aes(x = meanValues))
+histST = baseST + geom_histogram(binwidth = 2, boundary = 0, fill = "white", color = "grey50")
+histST = histST + stat_bin(binwidth = 2, aes(label=..count..), 
+                  geom = "text",boundary = 0,vjust=-0.5, size = 3)
+```
+
+```{r, eval=TRUE}
+titleST2 = "Washington state counties have an average student-teacher ratio approximately \nequal to 18 students per teacher"
+
+histST2 = histST + labs(title = titleST2, 
+                        x = "Average Student-Teacher Ratio",
+                        y = "Number of Counties",
+                        caption = "Source: US Department of Education")
+
+histST3 = histST2 + theme(panel.background = element_rect(fill = "white", colour = "grey50"),
+                          plot.title = element_text(size = 12, face = "bold"),
+                          axis.title = element_text(size = 10),
+                          axis.text = element_text(size = 8),
+                          plot.caption = element_text(hjust = 0),
+                          axis.title.x = element_text(vjust = -1),
+                          axis.title.y = element_text(vjust = 2))
+
+histST4 = histST3 + scale_x_continuous(breaks = c(10,12,14,16,18,20,22,24), limits = c(10,24)) +
+                    scale_y_continuous(breaks = c(0,5,10,15,20), limits = c(0,20))
+
+histST5 = histST4 + geom_vline(aes(xintercept = mean(stratiodf$meanValues), color="mean"), 
+                               size = 1, linetype = "dotted")
+
+histST6 = histST5 + theme(legend.title = element_blank()) +
+                    scale_color_manual(labels = c("Mean"), values = c("blue"))
+
+histST6
+
+```
+
+
+
+
+
+```{r, eval=TRUE}
+baseSTden <- ggplot(stratiodf, aes(x = meanValues))
+denST <- baseSTden + geom_density()
+```
+
+```{r, eval=TRUE}
+titleden = "Washington state counties have an average student-teacher ratio approximately \nequal to 18 students per teacher"
+
+denST2 = denST + labs(title = titleden, 
+                        x = "Average Student-Teacher Ratio",
+                        y = "Number of Counties",
+                        caption = "Source: US Department of Education")
+
+denST3 = denST2 + theme(panel.background = element_rect(fill = "white", colour = "grey50"),
+                          plot.title = element_text(size = 12, face = "bold"),
+                          axis.title = element_text(size = 10),
+                          axis.text = element_text(size = 8),
+                          plot.caption = element_text(hjust = 0, vjust = -2),
+                          axis.title.x = element_text(vjust = -1),
+                          axis.title.y = element_text(vjust = 2))
+
+denST4 = denST3 + scale_x_continuous(breaks = c(8,10,12,14,16,18,20,22,24,26), limits = c(8,26))
+
+denST5 = denST4 + geom_vline(aes(xintercept = mean(stratiodf$meanValues), color="mean"), 
+                               size = 1, linetype = "dotted") +
+                  geom_vline(aes(xintercept = median(stratiodf$meanValues), color="median"),
+                               size = 1, linetype = "dotted", show.legend = TRUE)
+
+denST6 = denST5 + theme(legend.title = element_blank()) +
+                  scale_color_manual(labels = c("Mean", "Median"), values = c("blue", "red"))
+
+denST6
+```
+
+
+
+
+
+```{r, eval=TRUE}
+boxST = ggplot(stratiodf, aes(y=meanValues, z="Test")) 
+
+boxST = boxST + geom_boxplot() + coord_flip() + scale_y_continuous(breaks = c(10,15,20,25),
+                                                                   limits = c(10,25))
+
+boxST2 = boxST + labs(title = "Two counties have a student-teacher ratio well below the state average", 
+                   y = "Average Student-Teacher Ratio",
+                   caption = "Source: US Department of Education") +
+                   theme(panel.background = element_rect(fill = "white", colour = "grey50")) +
+                   theme(axis.text.y = element_blank()) +
+                   theme(axis.ticks.y = element_blank()) +
+                   theme(axis.title.y = element_blank())
+
+boxST3 = boxST2 + theme(plot.title = element_text(size = 12, face = "bold"),
+                    axis.text.x = element_text(size = 8),
+                    axis.title.x = element_text(size = 10),
+                    plot.caption = element_text(hjust = 0, vjust = -1)) 
+
+boxST4 = boxST3 + annotate("text", x = -0.1, y = 11.5, 
+                           label = "Outliers are: \nColumbia and Lincoln", size = 3)
+
+boxST4
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
